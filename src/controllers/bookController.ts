@@ -142,3 +142,35 @@ export const getAvailableBooks = (req: Request, res: Response): void => {
         });
     }
 };
+
+export const getBookStats = (req: Request, res: Response): void => {
+    try {
+        const books = bookService.getAllBooks();
+
+        const totalBooks = books.length;
+        const availableBooks = books.filter(b => !b.isBorrowed).length;
+        const borrowedBooks = books.filter(b => b.isBorrowed).length;
+
+        // Breakdown by genre
+        const genreBreakdown: Record<string, number> = {};
+        books.forEach(book => {
+            if (book.genre) {
+                genreBreakdown[book.genre] = (genreBreakdown[book.genre] || 0) + 1;
+            }
+        });
+
+        res.status(HTTP_STATUS.OK).json({
+            message: "Library statistics retrieved successfully",
+            data: {
+                totalBooks,
+                availableBooks,
+                borrowedBooks,
+                genreBreakdown,
+            },
+        });
+    } catch (error) {
+        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+            message: "Error retrieving library statistics",
+        });
+    }
+};
